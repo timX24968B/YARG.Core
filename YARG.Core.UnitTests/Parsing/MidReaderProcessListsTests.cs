@@ -299,6 +299,92 @@ public class MidReaderProcessListsTests
         }
     }
 
+    [TestCase(MidIOHelper.PRO_GUITAR_ARPEGGIO_NOTE_EASY, YARG.Core.Difficulty.Easy)]
+    [TestCase(MidIOHelper.PRO_GUITAR_ARPEGGIO_NOTE_MEDIUM, YARG.Core.Difficulty.Medium)]
+    [TestCase(MidIOHelper.PRO_GUITAR_ARPEGGIO_NOTE_HARD, YARG.Core.Difficulty.Hard)]
+    [TestCase(MidIOHelper.PRO_GUITAR_ARPEGGIO_NOTE_EXPERT, YARG.Core.Difficulty.Expert)]
+    public void ProGuitarArpeggioPhrase_MarksNotesInsideRangeForMatchingDifficulty(
+        int markerNote, YARG.Core.Difficulty chartDifficulty)
+    {
+        var moonDifficulty = chartDifficulty switch
+        {
+            YARG.Core.Difficulty.Easy => MoonSong.Difficulty.Easy,
+            YARG.Core.Difficulty.Medium => MoonSong.Difficulty.Medium,
+            YARG.Core.Difficulty.Hard => MoonSong.Difficulty.Hard,
+            YARG.Core.Difficulty.Expert => MoonSong.Difficulty.Expert,
+            _ => throw new ArgumentOutOfRangeException(nameof(chartDifficulty)),
+        };
+        int difficultyStart = MidIOHelper.PRO_GUITAR_DIFF_START_LOOKUP[moonDifficulty];
+        int red = difficultyStart + (int) MoonNote.ProGuitarString.Red;
+        int green = difficultyStart + (int) MoonNote.ProGuitarString.Green;
+
+        var midi = MakeMidi(MakeTrack(MidIOHelper.PRO_GUITAR_17_FRET_TRACK,
+            Note(0, 200, markerNote, channel: 1),
+            // The channel-2 ghost chord used by an arpeggio phrase is
+            // display-only and must not become a playable chord.
+            Note(0, 200, red, velocity: 103, channel: 2),
+            Note(10, 30, red, velocity: 103),
+            Note(20, 40, green, velocity: 105),
+            // A normal note outside the phrase must not inherit the flag.
+            Note(210, 220, red, velocity: 103),
+            // Channel-1 ghost notes are display-only, not playable notes.
+            Note(230, 240, green, velocity: 105, channel: 1)));
+
+        var moonSong = MidReader.ReadMidi(midi);
+        var proGuitarPhrases = moonSong.GetChart(MoonInstrument.ProGuitar_17Fret,
+            moonDifficulty).specialPhrases;
+
+        var settings = ParseSettings.Default_Midi;
+        var songChart = SongChart.FromMidi(in settings, midi);
+        var notes = songChart.GetRealGuitarTrack(Instrument.RealGuitar,
+            chartDifficulty).GetDifficulty(chartDifficulty).Notes;
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(proGuitarPhrases, Has.One.Matches<MoonPhrase>(phrase =>
+                phrase.type == MoonPhrase.Type.ProGuitar_Arpeggio &&
+                phrase.tick == 0 && phrase.length == 200));
+
+            Assert.That(notes, Has.Count.EqualTo(3));
+            Assert.That(notes.Single(note => note.Tick == 10).IsArpeggio, Is.True);
+            Assert.That(notes.Single(note => note.Tick == 20).IsArpeggio, Is.True);
+            Assert.That(notes.Single(note => note.Tick == 210).IsArpeggio, Is.False);
+            Assert.That(notes, Has.None.Matches<ProGuitarNote>(note => note.Tick == 230));
+            Assert.That(notes, Has.None.Matches<ProGuitarNote>(note => note.Tick == 0));
+        }
+    }
+
+    [Test]
+    public void ProGuitarTapChannel_ParsesAsTapNote()
+    {
+        var midi = MakeMidi(MakeTrack(MidIOHelper.PRO_GUITAR_17_FRET_TRACK,
+            Note(10, 30, 96, velocity: 103, channel: 4)));
+
+        var settings = ParseSettings.Default_Midi;
+        var songChart = SongChart.FromMidi(in settings, midi);
+        var notes = songChart.GetRealGuitarTrack(Instrument.RealGuitar,
+            YARG.Core.Difficulty.Expert).GetDifficulty(YARG.Core.Difficulty.Expert).Notes;
+
+        Assert.That(notes, Has.Count.EqualTo(1));
+        Assert.That(notes[0].Type, Is.EqualTo(ProGuitarNoteType.Tap));
+    }
+
+    [Test]
+    public void ProGuitarMutedChannel_ParsesAsOnsetMuteNotPalmMute()
+    {
+        var midi = MakeMidi(MakeTrack(MidIOHelper.PRO_GUITAR_17_FRET_TRACK,
+            Note(10, 30, 96, velocity: 103, channel: 3)));
+
+        var settings = ParseSettings.Default_Midi;
+        var songChart = SongChart.FromMidi(in settings, midi);
+        var notes = songChart.GetRealGuitarTrack(Instrument.RealGuitar,
+            YARG.Core.Difficulty.Expert).GetDifficulty(YARG.Core.Difficulty.Expert).Notes;
+
+        Assert.That(notes, Has.Count.EqualTo(1));
+        Assert.That(notes[0].IsMuted, Is.True);
+        Assert.That(notes[0].IsPalmMuted, Is.False);
+    }
+
     [Test]
     public void GetCodaRanges_ReturnsBalancedRanges()
     {

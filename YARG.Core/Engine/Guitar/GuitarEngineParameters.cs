@@ -32,6 +32,14 @@ namespace YARG.Core.Engine.Guitar
             NoStarPowerOverlap = noStarPowerOverlap;
         }
 
+        public GuitarEngineParameters WithHitWindow(HitWindowSettings hitWindow)
+        {
+            return new GuitarEngineParameters(hitWindow, MaxMultiplier, StarPowerWhammyBuffer,
+                SustainDropLeniency, StarMultiplierThresholds, SoloBonusStarMultiplierThresholds,
+                HopoLeniency, StrumLeniency, StrumLeniencySmall, InfiniteFrontEnd, AntiGhosting,
+                SoloTaps, NoStarPowerOverlap, EnableLanes);
+        }
+
         public GuitarEngineParameters(ref FixedArrayStream stream, int version)
             : base(ref stream, version)
         {

@@ -108,7 +108,8 @@ namespace YARG.Core.Replays
                 Stats[i] = mode switch
                 {
                     GameMode.FiveFretGuitar or
-                    GameMode.SixFretGuitar => new GuitarReplayStats(ref stream, ReplayVersion),
+                    GameMode.SixFretGuitar or
+                    GameMode.RealGuitar => new GuitarReplayStats(ref stream, ReplayVersion),
                     GameMode.FourLaneDrums or
                     GameMode.FiveLaneDrums => new DrumsReplayStats(ref stream, ReplayVersion),
                     GameMode.ProKeys => new ProKeysReplayStats(ref stream, ReplayVersion),

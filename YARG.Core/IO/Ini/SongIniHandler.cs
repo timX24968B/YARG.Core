@@ -151,6 +151,8 @@ namespace YARG.Core.IO.Ini
                 { "real_bass_tuning",                     new("real_bass_tuning", ModifierType.UInt32) },
                 { "real_guitar_22_tuning",                new("real_guitar_22_tuning", ModifierType.UInt32) },
                 { "real_guitar_tuning",                   new("real_guitar_tuning", ModifierType.UInt32) },
+                { "yarg_real_guitar_tuning",              new("yarg_real_guitar_tuning", ModifierType.String) },
+                { "yarg_real_guitar_tuning_cents",        new("yarg_real_guitar_tuning_cents", ModifierType.Int32) },
                 { "real_keys_lane_count_left",            new("real_keys_lane_count_left", ModifierType.UInt32) },
                 { "real_keys_lane_count_right",           new("real_keys_lane_count_right", ModifierType.UInt32) },
 

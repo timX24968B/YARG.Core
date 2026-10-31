@@ -61,6 +61,15 @@ namespace YARG.Core.Engine
 
         protected readonly Queue<GameInput> InputQueue = new();
 
+        /// <summary>
+        /// When true, all inputs sharing one timestamp are applied before the
+        /// hit loop runs. Real Guitar sends one complete detector frame as
+        /// ~140 level/mask actions at a single timestamp; running the full
+        /// hit query after each action is unnecessary and stalls the game
+        /// thread.
+        /// </summary>
+        protected virtual bool BatchSameTimestampInputs => false;
+
         private readonly List<EngineFrameUpdate> _scheduledUpdates = new();
 
         public int NoteIndex { get; protected set; }
@@ -245,12 +254,39 @@ namespace YARG.Core.Engine
                 // Update engine state with input.
                 MutateStateWithInput(input);
 
-                // Run the engine.
+                if (BatchSameTimestampInputs)
+                {
+                    while (InputQueue.TryPeek(out var next) &&
+                        next.Time <= input.Time + 1e-9)
+                    {
+                        InputQueue.Dequeue();
+
+                        if (next.Time < CurrentTime)
+                        {
+                            YargLogger.FailFormat(
+                                "Queued input is in the past! Current time: {0}, input time: {1}",
+                                CurrentTime, next.Time);
+                            continue;
+                        }
+
+                        MutateStateWithInput(next);
+                    }
+                }
+
+                // Run the engine once for the complete same-timestamp batch.
                 RunEngineLoop(input.Time);
 
-                // Skip non-input update if possible
+                // Skip non-input update if possible. Keep draining inputs at
+                // this exact timestamp first: a chord analysis frame and its
+                // attack share a timestamp, and returning after the first one
+                // would leave the rest of the chord mask in the queue.
                 if (input.Time == time)
                 {
+                    if (InputQueue.TryPeek(out var next) && next.Time <= time)
+                    {
+                        continue;
+                    }
+
                     if (InputQueue.Count > 0)
                     {
                         YargLogger.LogWarning(

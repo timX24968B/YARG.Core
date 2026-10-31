@@ -86,7 +86,8 @@ namespace YARG.Core.Audio
                 Instrument.FiveFretGuitar or
                 Instrument.SixFretGuitar or
                 Instrument.ProGuitar_17Fret or
-                Instrument.ProGuitar_22Fret => GuitarStems,
+                Instrument.ProGuitar_22Fret or
+                Instrument.RealGuitar => GuitarStems,
 
                 Instrument.FiveFretBass or
                 Instrument.SixFretBass or

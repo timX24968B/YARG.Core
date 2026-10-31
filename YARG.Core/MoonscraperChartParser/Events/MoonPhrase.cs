@@ -54,6 +54,9 @@ namespace MoonscraperChartEditor.Song
             EliteDrums_KickLane,
             EliteDrums_HatPedalLane,
             EliteDrums_DiscoFlip,
+
+            // RB Pro Guitar arpeggio chord-shape range
+            ProGuitar_Arpeggio,
         }
 
         public uint length;

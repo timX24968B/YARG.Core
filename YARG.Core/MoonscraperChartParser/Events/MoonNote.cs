@@ -102,6 +102,22 @@ namespace MoonscraperChartEditor.Song
 
             // Pro Guitar
             ProGuitar_Muted = 1 << 8,
+            // Rocksmith NOTE_MASK_PALMMUTE (0x40).  MIDI channel 3 is the
+            // Rock Band "muted" channel and maps to ProGuitar_Muted, not
+            // this palm-mute marker; RS-native importers can set this flag.
+            ProGuitar_PalmMute = 1 << 26,
+            // Rocksmith article masks that are not present in the Rock Band
+            // MIDI Pro Guitar channel layout.  RS-native importers can set
+            // these flags without changing the ordinary MIDI mapping.
+            ProGuitar_FretHandMute = 1 << 27,
+            ProGuitar_Ignore = 1 << 28,
+            ProGuitar_Harmonic = 1 << 29,
+            ProGuitar_SlideUnpitched = 1 << 30,
+            // Channel-2 Pro Guitar notes.  They are ordinary bend notes
+            // outside an arpeggio phrase, and display-only ghost-chord notes
+            // inside one.  The marker is retained so the loader can discard
+            // the arpeggio ghost notes without adding bend semantics.
+            ProGuitar_Bend = 1 << 25,
 
             // Vocals
             Vocals_Percussion = 1 << 9,

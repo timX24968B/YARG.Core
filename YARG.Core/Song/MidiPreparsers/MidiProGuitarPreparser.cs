@@ -9,7 +9,9 @@ namespace YARG.Core.Song
         private const int PROGUITAR_MIN = 24;
         private const int NUM_STRINGS = 6;
         private const int MIN_VELOCITY = 100;
-        private const int ARPEGGIO_CHANNEL = 1;
+        // Channel 1 carries both ghost notes and arpeggio phrase markers.
+        // Neither is a playable note for difficulty detection.
+        private const int GHOST_AND_ARPEGGIO_CHANNEL = 1;
 
         private const int MAXVELOCTIY_17 = 117;
         public static DifficultyMask Parse_17Fret(YARGMidiTrack track)
@@ -44,8 +46,8 @@ namespace YARG.Core.Song
                     int diffIndex = MidiPreparser_Constants.EXTENDED_DIFF_INDICES[noteOffset];
                     int laneIndex = MidiPreparser_Constants.EXTENDED_LANE_INDICES[noteOffset];
                     var diffMask = (DifficultyMask) (1 << (diffIndex + 1));
-                    //                                                         Ghost notes aren't played
-                    if ((validations & diffMask) > 0 || laneIndex >= NUM_STRINGS || stats.Channel == ARPEGGIO_CHANNEL)
+                    //                                                         Ghost notes and arpeggio markers aren't played
+                    if ((validations & diffMask) > 0 || laneIndex >= NUM_STRINGS || stats.Channel == GHOST_AND_ARPEGGIO_CHANNEL)
                     {
                         continue;
                     }

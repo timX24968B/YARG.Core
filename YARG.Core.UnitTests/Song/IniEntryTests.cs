@@ -254,6 +254,31 @@ public class IniEntryTests
         }
     }
 
+    [Test]
+    public void CreateIniEntry_ParsesRealGuitarTuning()
+    {
+        const string songName = "testsong";
+        string root = CreateTempDirectory();
+        try
+        {
+            var ini = $"{CreateBasicIni()}\nyarg_real_guitar_tuning = 36 41 46 51 55 60\n" +
+                "yarg_real_guitar_tuning_cents = -10\n";
+            var entry = CreateIniEntry(root, songName, ini);
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(entry.RealGuitarTuning,
+                    Is.EqualTo(new[] { 36, 41, 46, 51, 55, 60 }));
+                Assert.That(entry.TuningOffsetCents, Is.EqualTo(-10));
+            }
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+                Directory.Delete(root, true);
+        }
+    }
+
     private static UnpackedIniEntry CreateIniEntry(string root, string name, string iniText)
     {
         string songDirectory = Path.Combine(root, name);

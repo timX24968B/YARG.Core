@@ -301,6 +301,52 @@ namespace YARG.Core.Chart
             };
         }
 
+        /// <summary>
+        /// Gets the Pro Guitar chart used by audio-input Real Guitar. The
+        /// 22-fret chart is preferred, with 17-fret used as a fallback.
+        /// </summary>
+        public InstrumentTrack<ProGuitarNote> GetRealGuitarTrack(Instrument instrument, Difficulty difficulty)
+        {
+            // The loader creates an InstrumentDifficulty object for every
+            // difficulty of both Pro Guitar tracks, even when that track has
+            // no notes.  Do not use HasDifficulty alone here: a 17-fret-only
+            // chart would otherwise select the empty 22-fret track and show
+            // no notes.
+            bool has17 = HasPlayableDifficulty(ProGuitar_17Fret, difficulty);
+            bool has22 = HasPlayableDifficulty(ProGuitar_22Fret, difficulty);
+
+            if (instrument == Instrument.ProGuitar_17Fret && has17)
+            {
+                return ProGuitar_17Fret;
+            }
+
+            if (instrument == Instrument.ProGuitar_22Fret && has22)
+            {
+                return ProGuitar_22Fret;
+            }
+
+            if (has22)
+            {
+                return ProGuitar_22Fret;
+            }
+
+            if (has17)
+            {
+                return ProGuitar_17Fret;
+            }
+
+            return instrument == Instrument.ProGuitar_17Fret
+                ? ProGuitar_17Fret
+                : ProGuitar_22Fret;
+        }
+
+        private static bool HasPlayableDifficulty(InstrumentTrack<ProGuitarNote> track,
+            Difficulty difficulty)
+        {
+            return track.TryGetDifficulty(difficulty, out var chart) &&
+                chart.Notes.Count > 0;
+        }
+
         public VocalsTrack GetVocalsTrack(Instrument instrument)
         {
             return instrument switch

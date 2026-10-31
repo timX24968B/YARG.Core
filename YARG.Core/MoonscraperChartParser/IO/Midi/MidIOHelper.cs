@@ -106,6 +106,14 @@ namespace MoonscraperChartEditor.Song.IO
         // Pro Guitar notes
         public const byte SOLO_NOTE_PRO_GUITAR = 115;
 
+        // Pro Guitar arpeggio phrase markers. These are channel-1 phrase
+        // markers, not per-note arpeggio flags; every playable note whose tick
+        // falls inside the marker's range receives the arpeggio bit.
+        public const byte PRO_GUITAR_ARPEGGIO_NOTE_EASY   = 32;
+        public const byte PRO_GUITAR_ARPEGGIO_NOTE_MEDIUM = 56;
+        public const byte PRO_GUITAR_ARPEGGIO_NOTE_HARD   = 80;
+        public const byte PRO_GUITAR_ARPEGGIO_NOTE_EXPERT = 104;
+
         // Vocals notes
         public const byte RANGE_SHIFT_NOTE = 0;
         public const byte LYRIC_SHIFT_NOTE = 1;
@@ -129,6 +137,8 @@ namespace MoonscraperChartEditor.Song.IO
 
         // Pro Guitar channels
         public const byte PRO_GUITAR_CHANNEL_NORMAL = 0;
+        // Channel 1 is shared by ghost notes and arpeggio phrase markers. It
+        // has no per-note flag; arpeggio markers are handled as phrases above.
         public const byte PRO_GUITAR_CHANNEL_GHOST = 1;
         public const byte PRO_GUITAR_CHANNEL_BEND = 2;
         public const byte PRO_GUITAR_CHANNEL_MUTED = 3;
@@ -325,14 +335,14 @@ namespace MoonscraperChartEditor.Song.IO
 
         public static readonly Dictionary<byte, MoonNote.Flags> PRO_GUITAR_CHANNEL_FLAG_LOOKUP = new()
         {
-            // Not all flags are implemented yet
             { PRO_GUITAR_CHANNEL_NORMAL,         MoonNote.Flags.None },
-            // { PRO_GUITAR_CHANNEL_GHOST,          MoonNote.Flags. },
-            // { PRO_GUITAR_CHANNEL_BEND,           MoonNote.Flags. },
+            // Ghost notes and arpeggio phrase markers share channel 1 and are
+            // handled as phrase/display data, not chart-note flags.
+            { PRO_GUITAR_CHANNEL_BEND,           MoonNote.Flags.ProGuitar_Bend },
             { PRO_GUITAR_CHANNEL_MUTED,          MoonNote.Flags.ProGuitar_Muted },
-            // { PRO_GUITAR_CHANNEL_TAP,            MoonNote.Flags. },
-            // { PRO_GUITAR_CHANNEL_HARMONIC,       MoonNote.Flags. },
-            // { PRO_GUITAR_CHANNEL_PINCH_HARMONIC, MoonNote.Flags. },
+            { PRO_GUITAR_CHANNEL_TAP,            MoonNote.Flags.Tap },
+            // Harmonic and pinch-harmonic technique semantics are out of
+            // scope for this Real Guitar pass.
         };
 
         public static readonly Dictionary<MoonPhrase.Type, int> ELITE_DRUMS_LANE_LOOKUP = new()

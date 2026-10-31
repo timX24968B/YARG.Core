@@ -9,6 +9,7 @@ using YARG.Core.Engine.Guitar;
 using YARG.Core.Engine.Guitar.Engines;
 using YARG.Core.Engine.Keys.Engines;
 using YARG.Core.Engine.Keys;
+using YARG.Core.Engine.RealGuitar;
 using YARG.Core.Engine.Vocals;
 using YARG.Core.Engine.Vocals.Engines;
 using YARG.Core.Game;
@@ -247,6 +248,14 @@ namespace YARG.Core.Replays.Analyzer
                     manager.Register((GuitarEngine)engine, notes, _chart, rockMeterPreset);
                     break;
                 }
+                case GameMode.RealGuitar:
+                {
+                    var notes = _chart.GetRealGuitarTrack(frame.Profile.CurrentInstrument,
+                        frame.Profile.CurrentDifficulty).GetDifficulty(frame.Profile.CurrentDifficulty).Clone();
+                    profile.ApplyModifiers(notes, _chart.SyncTrack);
+                    manager.Register((RealGuitarEngine)engine, notes, _chart, rockMeterPreset);
+                    break;
+                }
                 case GameMode.FourLaneDrums:
                 case GameMode.FiveLaneDrums:
                 case GameMode.EliteDrums:
@@ -341,6 +350,25 @@ namespace YARG.Core.Replays.Analyzer
                     }
 
                     return new YargSixFretGuitarEngine(
+                        notes,
+                        _chart.SyncTrack,
+                        (GuitarEngineParameters) parameters,
+                        profile.IsBot);
+                }
+                case GameMode.RealGuitar:
+                {
+                    var notes = _chart.GetRealGuitarTrack(profile.CurrentInstrument,
+                        profile.CurrentDifficulty).GetDifficulty(profile.CurrentDifficulty).Clone();
+                    profile.ApplyModifiers(notes, _chart.SyncTrack);
+                    foreach (var note in notes.Notes)
+                    {
+                        foreach (var subNote in note.AllNotes)
+                        {
+                            subNote.ResetNoteState();
+                        }
+                    }
+
+                    return new RealGuitarEngine(
                         notes,
                         _chart.SyncTrack,
                         (GuitarEngineParameters) parameters,

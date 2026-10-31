@@ -278,7 +278,36 @@ namespace MoonscraperChartEditor.Song.IO
             if (phraseSettings.soloNote == spNote)
                 phraseSettings.soloNote = -1;
 
-            return BuildCommonPhraseProcessMap(phraseSettings);
+            var processMap = BuildCommonPhraseProcessMap(phraseSettings);
+            if (gameMode == MoonChart.GameMode.ProGuitar)
+            {
+                AddProGuitarArpeggioPhrases(processMap);
+            }
+
+            return processMap;
+        }
+
+        private static void AddProGuitarArpeggioPhrases(Dictionary<int, EventProcessFn> processMap)
+        {
+            processMap.Add(MidIOHelper.PRO_GUITAR_ARPEGGIO_NOTE_EASY,
+                (ref EventProcessParams eventProcessParams) =>
+                    ProcessNoteOnEventAsSpecialPhrase(ref eventProcessParams,
+                        MoonPhrase.Type.ProGuitar_Arpeggio, MoonSong.Difficulty.Easy));
+
+            processMap.Add(MidIOHelper.PRO_GUITAR_ARPEGGIO_NOTE_MEDIUM,
+                (ref EventProcessParams eventProcessParams) =>
+                    ProcessNoteOnEventAsSpecialPhrase(ref eventProcessParams,
+                        MoonPhrase.Type.ProGuitar_Arpeggio, MoonSong.Difficulty.Medium));
+
+            processMap.Add(MidIOHelper.PRO_GUITAR_ARPEGGIO_NOTE_HARD,
+                (ref EventProcessParams eventProcessParams) =>
+                    ProcessNoteOnEventAsSpecialPhrase(ref eventProcessParams,
+                        MoonPhrase.Type.ProGuitar_Arpeggio, MoonSong.Difficulty.Hard));
+
+            processMap.Add(MidIOHelper.PRO_GUITAR_ARPEGGIO_NOTE_EXPERT,
+                (ref EventProcessParams eventProcessParams) =>
+                    ProcessNoteOnEventAsSpecialPhrase(ref eventProcessParams,
+                        MoonPhrase.Type.ProGuitar_Arpeggio, MoonSong.Difficulty.Expert));
         }
 
         private static Dictionary<string, ProcessModificationProcessFn> GetParsingModificationTextProcessDict(MoonChart.GameMode gameMode)
@@ -983,6 +1012,15 @@ namespace MoonscraperChartEditor.Song.IO
                         {
                             YargLogger.FailFormat("Wrong note event type! Expected: {0}, Actual: {1}",
                                 typeof(NoteEvent), eventProcessParams.timedEvent.midiEvent.GetType());
+                            return;
+                        }
+
+                        // Channel 1 is the ghost-note channel. These notes are
+                        // display-only in Pro Guitar charts and must not become
+                        // playable chart notes. Arpeggio phrase markers share
+                        // the channel but are keyed as phrases, not notes.
+                        if (noteEvent.Channel == MidIOHelper.PRO_GUITAR_CHANNEL_GHOST)
+                        {
                             return;
                         }
 

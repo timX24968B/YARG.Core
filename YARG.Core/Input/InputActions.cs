@@ -151,6 +151,190 @@
     }
 
     /// <summary>
+    /// The actions available for Real Guitar (audio-input guitar).
+    /// </summary>
+    public enum RealGuitarAction : byte
+    {
+        /// <summary>
+        /// Current detected pitch encoded as MIDI note number × 10. Zero means
+        /// no pitch is currently detected.
+        /// </summary>
+        Pitch = 0,
+        /// <summary>
+        /// A note attack was detected. The value is the pitch encoded as MIDI
+        /// note number × 10.
+        /// </summary>
+        Attack = 1,
+        /// <summary>The Star Power action, reported as a button.</summary>
+        StarPower = 2,
+        /// <summary>
+        /// MIDI notes 0-31 detected in the latest audio window, as a 32-bit
+        /// bit mask in the integer value.
+        /// </summary>
+        ChordNotes0 = 3,
+        /// <summary>
+        /// MIDI notes 32-63 detected in the latest audio window.
+        /// </summary>
+        ChordNotes1 = 4,
+        /// <summary>
+        /// MIDI notes 64-95 detected in the latest audio window.
+        /// </summary>
+        ChordNotes2 = 5,
+        /// <summary>
+        /// MIDI notes 96-127 detected in the latest audio window.
+        /// </summary>
+        ChordNotes3 = 6,
+        /// <summary>
+        /// MIDI notes 0-31 above the strong-note threshold.  This is a
+        /// confidence mask used to reject unrelated chord extensions.
+        /// </summary>
+        StrongChordNotes0 = 7,
+        /// <summary>MIDI notes 32-63 above the strong-note threshold.</summary>
+        StrongChordNotes1 = 8,
+        /// <summary>MIDI notes 64-95 above the strong-note threshold.</summary>
+        StrongChordNotes2 = 9,
+        /// <summary>MIDI notes 96-127 above the strong-note threshold.</summary>
+        StrongChordNotes3 = 10,
+        /// <summary>Packed candidate MIDI notes 0-3, one byte each.</summary>
+        ChordCandidatesMidi0 = 11,
+        /// <summary>Packed candidate MIDI notes 4-7, one byte each.</summary>
+        ChordCandidatesMidi1 = 12,
+        /// <summary>Packed candidate levels 0-3, one byte each.</summary>
+        ChordCandidatesLevel0 = 13,
+        /// <summary>Packed candidate levels 4-7, one byte each.</summary>
+        ChordCandidatesLevel1 = 14,
+        /// <summary>Number of valid packed chord candidates.</summary>
+        ChordCandidateCount = 15,
+        /// <summary>A hard/strong attack was detected.</summary>
+        StrongAttack = 16,
+        /// <summary>A clear pitch change usable for hammer-on/tap notes.</summary>
+        PitchChange = 17,
+        /// <summary>The analysis frame was input-clipped.</summary>
+        Clipped = 18,
+        /// <summary>Detected chord root MIDI note, or zero.</summary>
+        ChordRoot = 19,
+        /// <summary>Detector chord state: changed/new/age packed.</summary>
+        ChordState = 20,
+        /// <summary>Packed candidate MIDI notes 8-11, one byte each.</summary>
+        ChordCandidatesMidi2 = 21,
+        /// <summary>Packed candidate MIDI notes 12-15, one byte each.</summary>
+        ChordCandidatesMidi3 = 22,
+        /// <summary>Packed candidate levels 8-11, one byte each.</summary>
+        ChordCandidatesLevel2 = 23,
+        /// <summary>Packed candidate levels 12-15, one byte each.</summary>
+        ChordCandidatesLevel3 = 24,
+        /// <summary>
+        /// Full 128-bin note-level histogram, four MIDI notes per action,
+        /// one byte per level.  Group 0 covers MIDI notes 0-3, group 1
+        /// covers 4-7, and so on.  This mirrors the frame histogram used by
+        /// Rocksmith's FUN_014a734d chord matcher.
+        /// </summary>
+        ChordLevels0 = 25,
+        ChordLevels1 = 26,
+        ChordLevels2 = 27,
+        ChordLevels3 = 28,
+        ChordLevels4 = 29,
+        ChordLevels5 = 30,
+        ChordLevels6 = 31,
+        ChordLevels7 = 32,
+        ChordLevels8 = 33,
+        ChordLevels9 = 34,
+        ChordLevels10 = 35,
+        ChordLevels11 = 36,
+        ChordLevels12 = 37,
+        ChordLevels13 = 38,
+        ChordLevels14 = 39,
+        ChordLevels15 = 40,
+        ChordLevels16 = 41,
+        ChordLevels17 = 42,
+        ChordLevels18 = 43,
+        ChordLevels19 = 44,
+        ChordLevels20 = 45,
+        ChordLevels21 = 46,
+        ChordLevels22 = 47,
+        ChordLevels23 = 48,
+        ChordLevels24 = 49,
+        ChordLevels25 = 50,
+        ChordLevels26 = 51,
+        ChordLevels27 = 52,
+        ChordLevels28 = 53,
+        ChordLevels29 = 54,
+        ChordLevels30 = 55,
+        ChordLevels31 = 56,
+        /// <summary>Whether the accompanying ChordLevels actions are valid.</summary>
+        ChordLevelsValid = 57,
+        /// <summary>Whether the detector frame carried a normal note onset.</summary>
+        ChordOnset = 58,
+        /// <summary>Full-window sample peak encoded as peak * 1,000,000.</summary>
+        ChordPeak = 59,
+        /// <summary>Frame RMS level in dB encoded as dB * 100.</summary>
+        ChordLevel = 60,
+        /// <summary>
+        /// Base action for 128 exact float note levels.  Each of the actions
+        /// <c>ChordFloatLevels + 0..127</c> carries one IEEE-754 float bit
+        /// pattern, indexed by MIDI note.  The byte ChordLevels actions
+        /// remain the compatibility fallback.
+        /// </summary>
+        ChordFloatLevels = 61,
+        /// <summary>
+        /// Low 32 bits of the IEEE-754 double that stores the frame's
+        /// chord/input timestamp relative to its note-query timestamp.
+        /// Rocksmith stores the note-query time in frame +0x720 and the
+        /// chord/input time in +0x730; they are separate clocks.
+        /// </summary>
+        ChordTimeOffsetLow = 189,
+        /// <summary>High 32 bits of the frame's chord-time offset.</summary>
+        ChordTimeOffsetHigh = 190,
+        /// <summary>
+        /// Rocksmith +0x7b6/+0x7c4 frame quality bits.  Bit 0 is the moderate
+        /// rise flag (+0x7b6), bit 1 is the strong rise flag (+0x7c4).
+        /// </summary>
+        ChordQuality = 191,
+        /// <summary>
+        /// Refined fractional candidate pitches, one IEEE-754 float per action.
+        /// Candidate index 0 starts at ChordCandidatePitch0.
+        /// </summary>
+        ChordCandidatePitch0 = 192,
+        ChordCandidatePitch1 = 193,
+        ChordCandidatePitch2 = 194,
+        ChordCandidatePitch3 = 195,
+        ChordCandidatePitch4 = 196,
+        ChordCandidatePitch5 = 197,
+        ChordCandidatePitch6 = 198,
+        ChordCandidatePitch7 = 199,
+        ChordCandidatePitch8 = 200,
+        ChordCandidatePitch9 = 201,
+        ChordCandidatePitch10 = 202,
+        ChordCandidatePitch11 = 203,
+        ChordCandidatePitch12 = 204,
+        ChordCandidatePitch13 = 205,
+        ChordCandidatePitch14 = 206,
+        ChordCandidatePitch15 = 207,
+        ChordCandidatePitch16 = 208,
+        ChordCandidatePitch17 = 209,
+        ChordCandidatePitch18 = 210,
+        ChordCandidatePitch19 = 211,
+        /// <summary>Refined fractional root pitch for the arpeggio query.</summary>
+        RootPitch = 212,
+        /// <summary>Four candidate MIDI notes per action, one byte each.</summary>
+        ChordCandidateNotes0 = 213,
+        ChordCandidateNotes1 = 214,
+        ChordCandidateNotes2 = 215,
+        ChordCandidateNotes3 = 216,
+        ChordCandidateNotes4 = 217,
+        /// <summary>Base fractional pitch tolerance (+0x50 equivalent).</summary>
+        PitchTolerance = 219,
+        /// <summary>Monotonic detector frame identifier (+0x748 equivalent).</summary>
+        ChordFrameId = 220,
+        /// <summary>Slow detector level envelope (+0xdd8), dB * 100.</summary>
+        ChordDetectorLevel = 221,
+        /// <summary>Detector confidence score (+0xd38), 0-100 * 100.</summary>
+        ChordDetectorQuality = 222,
+        /// <summary>Immediate detector active state (+0xd7d/+0xd81).</summary>
+        ChordImmediateState = 223,
+    }
+
+    /// <summary>
     /// The actions available when playing Pro Keys modes.
     /// </summary>
     public enum ProKeysAction : byte

@@ -446,6 +446,16 @@ namespace YARG.Core.Game
                     }
 
                     break;
+                case GameMode.ProGuitar:
+                case GameMode.RealGuitar:
+                    if (track is not InstrumentDifficulty<ProGuitarNote>)
+                    {
+                        throw new InvalidOperationException("Cannot apply Pro Guitar modifiers to non-Pro Guitar track " +
+                            $"with notes of {typeof(TNote)}!");
+                    }
+
+                    // Real Guitar currently has no chart modifiers.
+                    break;
                 case GameMode.ProKeys:
                     if (track is InstrumentDifficulty<ProKeysNote> proKeysTrack)
                     {

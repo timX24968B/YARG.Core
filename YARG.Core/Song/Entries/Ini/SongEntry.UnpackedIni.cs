@@ -345,6 +345,23 @@ namespace YARG.Core.Song
             DateTime? iniLastWrite = stream.ReadBoolean() ? DateTime.FromBinary(stream.Read<long>(Endianness.Little)) : default;
             var entry = new UnpackedIniEntry(directory, in chartLastWrite, in iniLastWrite, chart.Format);
             entry.Deserialize(ref stream, strings);
+
+            // Quick scans normally trust the cached metadata for speed. If song.ini
+            // changed since the cache was written, rescan just this entry so edits
+            // such as yarg_real_guitar_tuning are visible without a full library scan.
+            string iniPath = Path.Combine(directory, "song.ini");
+            if (File.Exists(iniPath) &&
+                (!iniLastWrite.HasValue || !AbridgedFileInfo.Validate(iniPath, iniLastWrite.Value)))
+            {
+                var chartInfo = new FileInfo(Path.Combine(directory, chart.Filename));
+                var result = ProcessNewEntry(directory, chartInfo, chart.Format,
+                    new FileInfo(iniPath), entry._metadata.Playlist);
+                if (result.HasValue)
+                {
+                    return result.Value;
+                }
+            }
+
             return entry;
         }
     }

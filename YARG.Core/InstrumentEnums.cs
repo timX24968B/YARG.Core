@@ -27,6 +27,12 @@ namespace YARG.Core
         // 10-14: Pro instruments
         ProGuitar = 10,
         ProKeys = 11, // Includes Pro and Five-Lane
+        /// <summary>
+        /// Audio-input guitar played through a Real Tone cable or similar
+        /// interface. Uses Pro Guitar charts but is not the six-fret
+        /// controller mode.
+        /// </summary>
+        RealGuitar = 12,
 
         // 15-19: Vocals
         Vocals = 15,
@@ -67,6 +73,12 @@ namespace YARG.Core
         ProBass_22Fret = 33,
 
         ProKeys = 34,
+
+        /// <summary>
+        /// Audio-input Real Guitar. Charts are resolved from the Pro Guitar
+        /// 22-fret track when available, then 17-fret.
+        /// </summary>
+        RealGuitar = 35,
 
         // 40-49: Vocals
         Vocals = 40,
@@ -217,6 +229,8 @@ namespace YARG.Core
                 Instrument.ProBass_17Fret or
                 Instrument.ProBass_22Fret => GameMode.ProGuitar,
 
+                Instrument.RealGuitar => GameMode.RealGuitar,
+
                 Instrument.ProKeys => GameMode.ProKeys,
 
                 Instrument.Vocals or
@@ -286,6 +300,13 @@ namespace YARG.Core
                     Instrument.FiveFretBass,
                     Instrument.FiveFretRhythm,
                     Instrument.FiveFretCoopGuitar
+                },
+                GameMode.RealGuitar => new[]
+                {
+                    // The chart resolver picks 22-fret when available and
+                    // falls back to 17-fret. The profile uses the abstract
+                    // instrument so both chart variants are playable.
+                    Instrument.RealGuitar,
                 },
                 GameMode.Vocals => new[]
                 {

@@ -43,6 +43,7 @@ namespace YARG.Core.Replays
             {
                 case GameMode.FiveFretGuitar:
                 case GameMode.SixFretGuitar:
+                case GameMode.RealGuitar:
                     EngineParameters = new GuitarEngineParameters(ref stream, version);
                     Stats = new GuitarStats(ref stream, version);
                     break;

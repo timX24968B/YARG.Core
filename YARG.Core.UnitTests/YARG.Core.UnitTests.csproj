@@ -25,6 +25,22 @@
 
   <ItemGroup>
     <ProjectReference Include="..\YARG.Core\YARG.Core.csproj" />
+    <!-- ChordAnalyzer lives in the Unity assembly in production, but it has
+         no Unity dependency. Link it into the Core test project so the
+         Real Guitar analyzer front end is covered by normal dotnet tests. -->
+    <Compile Include="..\..\Assets\Script\Audio\PitchDetection\ChordAnalyzer.cs"
+             Link="Audio\ChordAnalyzer.cs" />
+    <!-- DeepScanAnalyzer lives in the Unity assembly but its scan ordering,
+         stem selection, confidence, and decode flags are testable without
+         Unity.  It uses ManagedBass only for the audio path. -->
+    <Compile Include="..\..\Assets\Script\DeepScan\DeepScanAnalyzer.cs"
+             Link="DeepScan\DeepScanAnalyzer.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="ManagedBass">
+      <HintPath>..\..\Assets\Packages\ManagedBass.3.1.1\lib\net45\ManagedBass.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

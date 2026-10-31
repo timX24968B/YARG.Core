@@ -211,6 +211,20 @@ namespace YARG.Core.Chart
                     }
                 }
 
+                // Channel-2 Pro Guitar notes are bend notes in ordinary
+                // passages, but inside an arpeggio phrase the same channel
+                // carries the display-only ghost chord.  The ghost chord must
+                // not become a playable chart note; ordinary channel-2 notes
+                // outside the phrase remain in the chart.
+                if (_currentMode == GameMode.ProGuitar &&
+                    (moonNote.flags & MoonNote.Flags.ProGuitar_Bend) != 0 &&
+                    currentPhrases.TryGetValue(MoonPhrase.Type.ProGuitar_Arpeggio,
+                        out var arpeggioPhrase) &&
+                    IsEventInPhrase(moonNote, arpeggioPhrase))
+                {
+                    continue;
+                }
+
                 // Skip Expert+ notes if not on Expert+
                 if (difficulty != Difficulty.ExpertPlus && (moonNote.flags & MoonNote.Flags.InstrumentPlus) != 0)
                 {

@@ -1,6 +1,7 @@
 ﻿using MoonscraperChartEditor.Song.IO;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using YARG.Core.Chart;
 using YARG.Core.Chart.Loaders.UltraStar;
@@ -218,6 +219,17 @@ namespace YARG.Core.Song
                 entry._settings.TuningOffsetCents = tuningOffsetCents;
             }
 
+            if (modifiers.Extract("yarg_real_guitar_tuning", out string realGuitarTuning) &&
+                TryParseRealGuitarTuning(realGuitarTuning, out int[] parsedTuning))
+            {
+                entry._realGuitarTuning = parsedTuning;
+            }
+
+            if (modifiers.Extract("yarg_real_guitar_tuning_cents", out int realGuitarTuningCents))
+            {
+                entry._realGuitarTuningOffsetCents = realGuitarTuningCents;
+            }
+
             if (!modifiers.Extract("hopo_frequency", out entry._settings.HopoThreshold) || entry._settings.HopoThreshold <= 0)
             {
                 if (modifiers.Extract("eighthnote_hopo", out bool eighthNoteHopo))
@@ -367,6 +379,31 @@ namespace YARG.Core.Song
                 return DrumsType.FiveLane;
             }
             return DrumsType.Unknown;
+        }
+
+        private static bool TryParseRealGuitarTuning(string text, out int[] tuning)
+        {
+            tuning = Array.Empty<int>();
+            string[] parts = text.Split(new[] { ' ', ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length != 6)
+            {
+                return false;
+            }
+
+            var parsed = new int[6];
+            for (int i = 0; i < parts.Length; i++)
+            {
+                if (!int.TryParse(parts[i], NumberStyles.Integer, CultureInfo.InvariantCulture,
+                        out int value) || value < 0 || value > 127)
+                {
+                    return false;
+                }
+
+                parsed[i] = value;
+            }
+
+            tuning = parsed;
+            return true;
         }
 
         private static ScanExpected<long> ParseDotChart<TChar>(ref YARGTextContainer<TChar> container, IniModifierCollection modifiers, ref AvailableParts parts, ref DrumsType drumsType)

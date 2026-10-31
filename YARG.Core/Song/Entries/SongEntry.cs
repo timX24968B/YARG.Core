@@ -78,6 +78,8 @@ namespace YARG.Core.Song
         protected AvailableParts _parts = AvailableParts.Default;
         protected HashWrapper _hash = default;
         protected LoaderSettings _settings = LoaderSettings.Default;
+        protected int[] _realGuitarTuning = Array.Empty<int>();
+        protected int _realGuitarTuningOffsetCents;
         protected string _parsedYear = string.Empty;
         protected int _yearAsNumber = int.MaxValue;
 
@@ -87,6 +89,20 @@ namespace YARG.Core.Song
 
         public HashWrapper Hash => _hash;
         public SortString Name => _name;
+
+        /// <summary>
+        /// The six open-string MIDI notes for Pro Guitar, when the chart
+        /// provides tuning metadata. Empty when the chart does not specify a
+        /// tuning (in which case standard tuning is assumed).
+        /// </summary>
+        public virtual int[] RealGuitarTuning => _realGuitarTuning;
+
+        /// <summary>
+        /// Global tuning offset in cents, applied to the Pro Guitar tuning.
+        /// </summary>
+        public virtual int TuningOffsetCents => _realGuitarTuningOffsetCents != 0
+            ? _realGuitarTuningOffsetCents
+            : _settings.TuningOffsetCents;
         public SortString Artist => _artist;
         public SortString Album => _album;
         public SortString RawGenre  => _rawGenre;
@@ -243,6 +259,9 @@ namespace YARG.Core.Song
                     Instrument.ProGuitar_22Fret => _parts.ProGuitar_22Fret,
                     Instrument.ProBass_17Fret => _parts.ProBass_17Fret,
                     Instrument.ProBass_22Fret => _parts.ProBass_22Fret,
+                    Instrument.RealGuitar => _parts.ProGuitar_22Fret.IsActive()
+                        ? _parts.ProGuitar_22Fret
+                        : _parts.ProGuitar_17Fret,
 
                     Instrument.ProKeys => _parts.ProKeys,
 
@@ -283,6 +302,8 @@ namespace YARG.Core.Song
                 Instrument.ProGuitar_22Fret => _parts.ProGuitar_22Fret.IsActive(),
                 Instrument.ProBass_17Fret => _parts.ProBass_17Fret.IsActive(),
                 Instrument.ProBass_22Fret => _parts.ProBass_22Fret.IsActive(),
+                Instrument.RealGuitar => _parts.ProGuitar_22Fret.IsActive() ||
+                    _parts.ProGuitar_17Fret.IsActive(),
 
                 Instrument.ProKeys => _parts.ProKeys.IsActive(),
 
@@ -303,6 +324,12 @@ namespace YARG.Core.Song
         /// <returns>bool</returns>
         public bool HasDifficultyForInstrument(Instrument instrument, DifficultyMask difficulty)
         {
+            if (instrument == Instrument.RealGuitar)
+            {
+                return (_parts.ProGuitar_22Fret.Difficulties & difficulty) == difficulty ||
+                    (_parts.ProGuitar_17Fret.Difficulties & difficulty) == difficulty;
+            }
+
             PartValues? part = instrument switch
             {
                 Instrument.FiveFretGuitar     => _parts.FiveFretGuitar,
@@ -458,6 +485,13 @@ namespace YARG.Core.Song
             stream.Write(_settings.HopoThreshold, Endianness.Little);
             stream.Write(_settings.SustainCutoffThreshold, Endianness.Little);
             stream.Write(_settings.OverdiveMidiNote, Endianness.Little);
+
+            stream.WriteByte((byte) _realGuitarTuning.Length);
+            foreach (int note in _realGuitarTuning)
+            {
+                stream.WriteByte((byte) note);
+            }
+            stream.Write(_realGuitarTuningOffsetCents, Endianness.Little);
         }
 
         protected SongEntry() { }
@@ -561,6 +595,14 @@ namespace YARG.Core.Song
             _settings.HopoThreshold = stream.Read<long>(Endianness.Little);
             _settings.SustainCutoffThreshold = stream.Read<long>(Endianness.Little);
             _settings.OverdiveMidiNote = stream.Read<int>(Endianness.Little);
+
+            int tuningCount = stream.ReadByte();
+            _realGuitarTuning = new int[tuningCount];
+            for (int i = 0; i < tuningCount; i++)
+            {
+                _realGuitarTuning[i] = stream.ReadByte();
+            }
+            _realGuitarTuningOffsetCents = stream.Read<int>(Endianness.Little);
 
             SetSortStrings();
         }

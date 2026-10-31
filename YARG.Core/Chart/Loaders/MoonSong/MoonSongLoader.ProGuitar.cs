@@ -28,7 +28,7 @@ namespace YARG.Core.Chart
             int proFret = GetProGuitarFret(moonNote);
             var noteType = GetProGuitarNoteType(moonNote);
             var generalFlags = GetGeneralFlags(moonNote, currentPhrases);
-            var proFlags = GetProGuitarNoteFlags(moonNote);
+            var proFlags = GetProGuitarNoteFlags(moonNote, currentPhrases);
 
             double time = _moonSong.TickToTime(moonNote.tick);
             return new ProGuitarNote(proString, proFret, noteType, proFlags, generalFlags, time, GetLengthInTime(moonNote), moonNote.tick, moonNote.length);
@@ -65,7 +65,8 @@ namespace YARG.Core.Chart
             };
         }
 
-        private ProGuitarNoteFlags GetProGuitarNoteFlags(MoonNote moonNote)
+        private ProGuitarNoteFlags GetProGuitarNoteFlags(MoonNote moonNote,
+            Dictionary<MoonPhrase.Type, MoonPhrase> currentPhrases)
         {
             var flags = ProGuitarNoteFlags.None;
 
@@ -76,10 +77,47 @@ namespace YARG.Core.Chart
             if ((guitarFlags & GuitarNoteFlags.Disjoint) != 0)
                 flags |= ProGuitarNoteFlags.Disjoint;
 
-            // Muted notes
+            // Muted notes.  MIDI channel 3 is the Rock Band muted channel
+            // and maps to Rocksmith NOTE_MASK_MUTE (the onset-only query),
+            // not NOTE_MASK_PALMMUTE.
             if ((moonNote.flags & MoonNote.Flags.ProGuitar_Muted) != 0)
             {
                 flags |= ProGuitarNoteFlags.Muted;
+            }
+
+            // RS-native palm-mute marker.  MIDI channel 3 does not set this;
+            // a future SNG/RS chart importer can provide it.
+            if ((moonNote.flags & MoonNote.Flags.ProGuitar_PalmMute) != 0)
+            {
+                flags |= ProGuitarNoteFlags.PalmMuted;
+            }
+
+            // Rocksmith technique/article masks.  Rock Band MIDI does not
+            // encode these channels, but RS-native importers can set them.
+            if ((moonNote.flags & MoonNote.Flags.ProGuitar_FretHandMute) != 0)
+            {
+                flags |= ProGuitarNoteFlags.FretHandMute;
+            }
+            if ((moonNote.flags & MoonNote.Flags.ProGuitar_Ignore) != 0)
+            {
+                flags |= ProGuitarNoteFlags.Ignore;
+            }
+            if ((moonNote.flags & MoonNote.Flags.ProGuitar_Harmonic) != 0)
+            {
+                flags |= ProGuitarNoteFlags.Harmonic;
+            }
+            if ((moonNote.flags & MoonNote.Flags.ProGuitar_SlideUnpitched) != 0)
+            {
+                flags |= ProGuitarNoteFlags.SlideUnpitched;
+            }
+
+            // Arpeggio phrase markers (MIDI notes 104/80/56/32 on channel 1).
+            // The marker covers every chart note inside its range; those notes
+            // use the root-pitch query instead of the normal attack query.
+            if (currentPhrases.TryGetValue(MoonPhrase.Type.ProGuitar_Arpeggio, out var arpeggio) &&
+                IsEventInPhrase(moonNote, arpeggio))
+            {
+                flags |= ProGuitarNoteFlags.Arpeggio;
             }
 
             return flags;

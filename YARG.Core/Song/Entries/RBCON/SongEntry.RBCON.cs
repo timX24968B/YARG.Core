@@ -50,6 +50,9 @@ namespace YARG.Core.Song
         public string SubName => _subName;
         public int RBBandDiff => _rbIntensities.Band;
 
+        public override int[] RealGuitarTuning => _rbMetadata.RealGuitarTuning;
+        public override int TuningOffsetCents => _rbMetadata.TuningOffsetCents;
+
         protected abstract DateTime MidiLastWriteTime { get; }
 
         protected abstract FixedArray<byte>? GetMainMidiData();

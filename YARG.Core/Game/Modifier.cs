@@ -94,6 +94,7 @@ namespace YARG.Core.Game
                     Modifier.OpensToGreens,
 
                 GameMode.ProGuitar     or
+                GameMode.RealGuitar    or
             //  GameMode.Dj            or
                 GameMode.ProKeys       => Modifier.None,
 
